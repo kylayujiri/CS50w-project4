@@ -1,12 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   // Use buttons to toggle between views
+  // (Have to check if they exist in the case that no user is logged in)
+
+  // Profile Link
   if (document.querySelector('#profile-nav') != null) {
     document.querySelector('#profile-nav').onclick = () => {
       loadProfileView(document.querySelector('#profile-nav').innerText, 1);
       return false;
     };
   }
+
+  // Following Link
   if (document.querySelector('#following-nav') != null) {
     document.querySelector('#following-nav').onclick = () => {
       loadPostsView('following', 1);
@@ -14,15 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // By default, load all posts
+  // By default, load first page of all posts
   loadPostsView('all', 1);
 
 });
 
-function loadPostsView(postsFilter, pageNum) {
 
-  // Show/hide certain views
-  document.querySelector('#make-post-view').style.display = 'none';
+function loadPostsView(postsFilter, pageNum) {
+  // Loads the page (given by pageNum) of the posts
+  // (following or all; given by postsFilter)
+
+  // Show posts-view; Hide profile-view
   document.querySelector('#posts-view').style.display = 'block';
   document.querySelector('#profile-view').style.display = 'none';
 
@@ -30,12 +37,14 @@ function loadPostsView(postsFilter, pageNum) {
   if (document.querySelector('#profile-nav') != null) {
     document.querySelector('#profile-nav').closest(".nav-item").classList.remove("active");
   }
+
   document.querySelector('#all-posts-nav').closest(".nav-item").classList.remove("active");
+
   if (document.querySelector('#following-nav') != null) {
     document.querySelector('#following-nav').closest(".nav-item").classList.remove("active");
   }
 
-  // clear user posts element and posts element
+  // clear user-posts element and posts element
   const userPosts = document.querySelector('#user-posts');
   while (userPosts.hasChildNodes()) {
     userPosts.removeChild(userPosts.firstChild);
@@ -46,6 +55,7 @@ function loadPostsView(postsFilter, pageNum) {
     postsElement.removeChild(postsElement.firstChild);
   }
 
+  // determine and display title (All Posts or Following) and nav bar active state
   let title = "";
 
   if (postsFilter === "all") {
@@ -58,11 +68,12 @@ function loadPostsView(postsFilter, pageNum) {
 
   document.querySelector('#posts-title').innerHTML = `<h3>${title}</h3>`;
 
+  // add onclick event listener to the make post button
   if (document.querySelector('#make-post-button') != null) {
     document.querySelector('#make-post-button').onclick = () => modalFunctionality();
   }
 
-  // get the first page of posts and display them
+  // get the page of posts and display them using fetch
   fetch(`/posts/${postsFilter}/${pageNum}`)
   .then(response => response.json())
   .then(result => {
@@ -72,14 +83,17 @@ function loadPostsView(postsFilter, pageNum) {
     // call displayPost for each post
     result.posts.forEach(postInfo => displayPost(postInfo, postsFilter));
 
+    // add functioinality to the previous and next buttons
     paginationFunctionality(result, postsFilter);
 
   });
 
-
 }
 
+
 function modalFunctionality() {
+  // called when the make post button is pressed
+
   // clear out the form field
   document.querySelector('#post-text').value = '';
 
@@ -112,24 +126,26 @@ function modalFunctionality() {
       // close modal
       $("#post-modal").modal("hide");
 
-      // load whatever comes next
+      // load the first page of posts-view (so we see the post we made!)
       loadPostsView('all', 1);
     });
   }
 }
 
-// loads the profile (user info and their posts) of the provided user
-function loadProfileView(username, pageNum) {
 
-  // Show/hide certain views
-  document.querySelector('#make-post-view').style.display = 'none';
+function loadProfileView(username, pageNum) {
+  // loads the profile (user info and their posts) of the provided user
+
+  // Show profile-view, hide posts-view
   document.querySelector('#posts-view').style.display = 'none';
   document.querySelector('#profile-view').style.display = 'block';
 
-  // set profile-nav to active; all else remove active
+  // set profile-nav to active if user is view their own profile
   if (document.querySelector('#profile-nav') != null && document.querySelector('#profile-nav').innerText == username) {
     document.querySelector('#profile-nav').closest(".nav-item").classList.add("active");
   }
+
+  // all else remove active
   document.querySelector('#all-posts-nav').closest(".nav-item").classList.remove("active");
   if (document.querySelector('#following-nav') != null) {
     document.querySelector('#following-nav').closest(".nav-item").classList.remove("active");
@@ -159,15 +175,17 @@ function loadProfileView(username, pageNum) {
     console.log(userInfo);
 
     // display in DOM
+
+    // get the element for user info
     userInfoDiv = document.querySelector('#user-info');
 
+    // create element for the username
     const usernameTitle = document.createElement('h2');
     usernameTitle.innerHTML = userInfo.username;
 
+    // create button for follow/unfollow
     const followButton = document.createElement('button');
     followButton.className = "btn btn-sm mb-2";
-
-    console.log(`current follow status: ${userInfo.user_is_following}`);
 
     if (userInfo.user_is_following) {
       followButton.innerHTML = "Unfollow";
@@ -177,14 +195,19 @@ function loadProfileView(username, pageNum) {
       followButton.classList.add("btn-outline-primary");
     }
 
+    // determine if we show the follow/unfollow button
+    // show if the signed in user is viewing a different account
+    // don't show if user not signed in or it is their own account
     if (userInfo.is_signed_in_user || document.querySelector('#following-nav') == null) {
       followButton.style.display = 'none';
     } else {
       followButton.style.display = 'inline-block';
     }
 
+    // create divs for additionall info
     const otherInfo = document.createElement('div');
 
+    // create divs for content within the otherInfo div
     const joinedDate = document.createElement('p');
     joinedDate.innerHTML = `Joined ${userInfo.date_joined}`;
 
@@ -194,9 +217,11 @@ function loadProfileView(username, pageNum) {
     const numFollowing = document.createElement('p');
     numFollowing.innerHTML = `<strong>${userInfo.num_following}</strong> Following`;
 
+    // create header for posts
     const postsHeader = document.createElement('h3');
     postsHeader.innerHTML = "Posts";
 
+    // append everything to their respective parents
     otherInfo.append(joinedDate);
     otherInfo.append(numFollowers);
     otherInfo.append(numFollowing);
@@ -206,9 +231,11 @@ function loadProfileView(username, pageNum) {
     userInfoDiv.append(followButton);
     userInfoDiv.append(otherInfo);
 
+    // add onclick event listener to the follow/unfollow button
     followButton.onclick = event => {
       event.preventDefault();
 
+      // send the data via POST
       fetch(`/profile/${userInfo.username}/${pageNum}`, {
         method: 'POST',
         body: JSON.stringify({
@@ -220,9 +247,11 @@ function loadProfileView(username, pageNum) {
         // print result
         console.log(result);
 
+        // update our variables
         userInfo.user_is_following = !userInfo.user_is_following;
         userInfo.num_followers = result.follower_count;
 
+        // change the button's display
         if (userInfo.user_is_following) {
           followButton.innerHTML = "Unfollow";
           followButton.classList.add("btn-primary");
@@ -233,27 +262,32 @@ function loadProfileView(username, pageNum) {
           followButton.classList.remove("btn-primary");
         }
 
+        // update the follower count
         userInfoDiv.childNodes[2].childNodes[1].innerHTML = `<strong>${userInfo.num_followers}</strong> Follower(s)`;
 
       });
 
-    };
+    }; // end of event listener for follow button
 
-    // display their posts
+    // display the user's posts
     userInfo.user_posts.forEach(postInfo => displayPost(postInfo, "profile"));
 
+    // info to send to the paginator function
     result = {
       "num_pages": userInfo.num_pages,
       "current_page": userInfo.current_page
     }
 
+    // add functionality for the prev/next buttons
     paginationFunctionality(result, "profile", username)
-  });
 
-}
+  }); // end of .then for GET fetch
 
-// displays one post (called for each post from a fetch)
+} // end of loadProfileView
+
+
 function displayPost(postInfo, postsFilter) {
+  // displays one post (called for each post from a fetch)
 
   // determine where to display the post
   if (postsFilter === "profile") {
@@ -424,18 +458,21 @@ function displayPost(postInfo, postsFilter) {
         // add the timestamp back to the footer
         postFooter.append(timestamp);
 
-      });
-    };
+      }); // end of .then for like PUT fetch
+
+    }; // end of onclick for like button
   }
 
-}
+} // end of displayPost
 
 
 function editPost(postId) {
   // edit button has been pressed, so we need to display the edit template
 
+  // get the id we added to each post in displayPost
   postDiv = document.querySelector(`#post-${postId}`);
 
+  // get references to all the post's elements
   postHeader = postDiv.childNodes[0];
   postText = postDiv.childNodes[1];
   postFooter = postDiv.childNodes[2];
@@ -487,6 +524,9 @@ function editPost(postId) {
   // add onclick events for the two buttons
   editCancelButton.onclick = event => {
     event.preventDefault();
+
+    // if we cancel, we add everything back like it was
+    // and remove the edit elements
 
     // restore header
     postUsername.style.display = 'block';
@@ -542,17 +582,19 @@ function editPost(postId) {
       editCancelButton.remove();
       editSaveButton.remove();
 
-    });
+    }); // end of .then for PUT fetch for editing
 
+  } // end of onclick for save button
 
+} // end of editPost()
 
-  }
-
-
-}
 
 function paginationFunctionality(result, postsFilter, username) {
+  // adds onclick event listeners
+  // makes it so we can only click next when there is a next page (same for prev)
 
+
+  // determine which paginator we are dealing with
   if (postsFilter == "profile") {
 
     paginationDiv = document.querySelector('#profile-pagination-nav');
@@ -569,11 +611,18 @@ function paginationFunctionality(result, postsFilter, username) {
 
   // pagination navigation
   if (result.num_pages == 1) {
+    // only one page, so we don't need next/prev buttons
+
     // hide the pagination-nav div
     paginationDiv.style.display = 'none';
+
   } else {
+    // there are multiple pages
+
+    // show the pagination-nav div
     paginationDiv.style.display = 'block';
 
+    // determine if next or prev needs to be disabled
     if (result.current_page == 1) {
 
       prevPageButton.classList.add("disabled");
@@ -606,11 +655,14 @@ function paginationFunctionality(result, postsFilter, username) {
 
     }
 
+    // event listener for previous button
     prevPageButton.onclick = event => {
       event.preventDefault();
 
+      // make sure the button isn't disabled
       if (!prevPageButton.classList.contains("disabled")) {
 
+        // load the view with the previous page
         if (postsFilter == "profile") {
 
           loadProfileView(username, result.current_page - 1);
@@ -623,13 +675,16 @@ function paginationFunctionality(result, postsFilter, username) {
 
       }
 
-    }
+    } // end of onclick for prevPageButton
 
+    // event listener for next button
     nextPageButton.onclick = event => {
       event.preventDefault();
 
+      // make sure the button isn't disabled
       if (!nextPageButton.classList.contains("disabled")) {
 
+        // load the view with the previous page
         if (postsFilter == "profile") {
 
           loadProfileView(username, result.current_page + 1);
@@ -642,9 +697,8 @@ function paginationFunctionality(result, postsFilter, username) {
 
       }
 
-    }
+    } // end of onclick for nextPageButton
 
-  }
+  } // end of else
 
-
-}
+} // end of paginationFunctionality()

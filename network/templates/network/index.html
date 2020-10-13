@@ -2,68 +2,80 @@
 {% load static %}
 
 {% block body %}
-<div id="make-post-view">
-</div>
 
-<div id="posts-view">
-  <div id="posts-title" class="m-2">
-  </div>
+  <!-- For All Posts or Following -->
+  <div id="posts-view">
+    <div id="posts-title" class="m-2">
+    </div>
 
-  <!-- Button to Show Modal -->
-  {% if user.is_authenticated %}
-  <button type="button" class="btn btn-primary m-2" id="make-post-button">Make a Post</button>
-  {% endif %}
+    <!-- Button to Show Modal -->
+    {% if user.is_authenticated %}
+    <button type="button" class="btn btn-primary m-2" id="make-post-button">Make a Post</button>
+    {% endif %}
 
-  <!-- Modal -->
-  <div class="modal fade" id="post-modal" data-backdrop="static" tabindex="-1" aria-labelledby="modal-label" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="model-label">Make a Post</h5>
-        </div>
-        <div class="modal-body">
-          <form id="make-post-form" method="post">
-            <textarea class="form-control" id="post-text" placeholder="Your Post Here" required></textarea>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="cancel-modal">Cancel</button>
-          <button type="submit" form="make-post-form" class="btn btn-primary" id="submit-modal">Post</button>
+    <!-- Modal -->
+    <div class="modal fade" id="post-modal" data-backdrop="static" tabindex="-1" aria-labelledby="modal-label" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="model-label">Make a Post</h5>
+          </div>
+          <div class="modal-body">
+            <form id="make-post-form" method="post">
+              <textarea class="form-control" id="post-text" placeholder="Your Post Here" required></textarea>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancel-modal">Cancel</button>
+            <button type="submit" form="make-post-form" class="btn btn-primary" id="submit-modal">Post</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div id="posts" class="list-group">
-  </div>
+    <!-- Where the Posts Go -->
+    <div id="posts" class="list-group">
+    </div>
 
-  <div id="pagination-nav">
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" id="prev-page-nav"><a class="page-link" href="#">Previous</a></li>
-        <li class="page-item" id="next-page-nav"><a class="page-link" href="#">Next</a></li>
-      </ul>
-    </nav>
-  </div>
+    <!-- Pagination for All Posts or Following -->
+    <div id="pagination-nav">
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" id="prev-page-nav"><a class="page-link" href="#">Previous</a></li>
+          <li class="page-item" id="next-page-nav"><a class="page-link" href="#">Next</a></li>
+        </ul>
+      </nav>
+    </div>
 
-</div>
+  </div>
+  <!-- End posts-view -->
 
-<div id="profile-view">
-  <div id="user-info">
+
+  <!-- For Profile (Info and Posts) -->
+  <div id="profile-view">
+
+    <div id="user-info">
+    </div>
+
+    <div id="user-posts" class="list-group">
+    </div>
+
+    <!-- Pagination for Profile Posts -->
+    <div id="profile-pagination-nav">
+      <nav aria-label="Profile Posts Page navigation">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" id="prof-prev-page-nav"><a class="page-link" href="#">Previous</a></li>
+          <li class="page-item" id="prof-next-page-nav"><a class="page-link" href="#">Next</a></li>
+        </ul>
+      </nav>
+    </div>
+
   </div>
-  <div id="user-posts" class="list-group">
-  </div>
-  <div id="profile-pagination-nav">
-    <nav aria-label="Profile Posts Page navigation">
-      <ul class="pagination justify-content-center">
-        <li class="page-item" id="prof-prev-page-nav"><a class="page-link" href="#">Previous</a></li>
-        <li class="page-item" id="prof-next-page-nav"><a class="page-link" href="#">Next</a></li>
-      </ul>
-    </nav>
-  </div>
-</div>
+  <!-- End profile-view -->
+
 {% endblock %}
 
+<!-- Connect to index.js -->
 {% block script %}
-<script src="{% static 'network/index.js' %}"></script>
+  <script src="{% static 'network/index.js' %}"></script>
 {% endblock %}

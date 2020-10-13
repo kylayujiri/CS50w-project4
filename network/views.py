@@ -66,6 +66,7 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
+
 @csrf_exempt
 @login_required
 def make_post(request):
@@ -74,18 +75,25 @@ def make_post(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)
 
+    # get the data from the form (sent as json)
     data = json.loads(request.body)
     post_content = data.get("content")
 
+    # add the post to the database
     new_post = Post(
         poster=request.user,
         content=post_content,
     )
     new_post.save()
 
+    # return a success message
     return JsonResponse({"message": "Post created successfully."}, status=201)
 
+
 def posts(request, posts_filter, page_num):
+    # posts_filter tells us what posts we want
+    # page_num tells us what page of those posts we want to display
+    # (default from index.js is 1)
 
     # determrine what posts we're getting (all or following?)
     if posts_filter == "all":
@@ -103,16 +111,24 @@ def posts(request, posts_filter, page_num):
     # order pages (latest first)
     posts = posts.order_by("-timestamp").all()
 
-    # paginate posts
+    # paginate posts (10 posts per page)
     post_paginator = Paginator(posts, 10)
+
+    # get the number of pages
     num_pages = post_paginator.num_pages
 
+    # get the page reference from page_num
     current_page = post_paginator.page(page_num)
 
-    # format posts to return (similar code in profile view)
+    # format posts we want to return (similar code in profile view)
+
     posts_array = []
     posts_dict = {}
+
+    # for each post on the page we're displaying
     for post in current_page.object_list:
+
+        # determine if the user is the poster or if they liked the post
 
         user_is_poster = False
         user_liked = False
@@ -130,6 +146,7 @@ def posts(request, posts_filter, page_num):
             except User.DoesNotExist:
                 user_liked = False
 
+        # this is the post format we return
         temp_post = {
             'post_id': post.pk,
             'poster': post.poster.username,
@@ -140,20 +157,24 @@ def posts(request, posts_filter, page_num):
             'user_is_poster': user_is_poster
         }
 
+        # add the post to the posts_array
         posts_array.append(temp_post)
 
+    #we want to return a json dict, so we add the posts_array with some other variables
     posts_dict["posts"] = posts_array
     posts_dict["num_pages"] = num_pages
     posts_dict["current_page"] = page_num
 
+    # return the dict
     return JsonResponse(posts_dict)
 
 
 @login_required
 @csrf_exempt
 def post(request, post_id):
+    # post_id is the id of the post we're altering (like or edit)
 
-    # query for requested post
+    # query for the requested post
     try:
         post = Post.objects.get(pk=post_id)
     except Post.DoesNotExist:
@@ -162,6 +183,7 @@ def post(request, post_id):
     if request.method == "PUT":
         data = json.loads(request.body)
 
+        # if the user is liking/unliking
         like_status = data.get("like")
         if like_status is not None:
             if like_status:
@@ -178,6 +200,7 @@ def post(request, post_id):
             post.save()
             return JsonResponse(response)
 
+        # if the user is editing
         edit_status = data.get("edit")
         if edit_status is not None:
             if request.user == post.poster:
@@ -191,28 +214,42 @@ def post(request, post_id):
 
         return JsonResponse({"error": "Nothing was changed."}, status=400)
 
+    else:
+        # request method must be PUT
+        return JsonResponse({"error": "PUT request required."}, status=400)
+
+
 @csrf_exempt
 def profile(request, username, page_num):
+    # username gives us the username of the user we're viewing
+    # page_num gives us the page of the user's posts we would like to view
 
+    # query for the user
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
         return JsonResponse({"error": "User not found."}, status=404)
 
+    # if we're just viewing the profile, method is GET
     if request.method == "GET":
 
         # get user's posts (similar code in posts view)
         posts = Post.objects.filter(poster=user).order_by("-timestamp").all()
 
-        # pagination
+        # pagination of the user's posts
         post_paginator = Paginator(posts, 10)
         num_pages = post_paginator.num_pages
 
+        # get page we're viewing
         current_page = post_paginator.page(page_num)
 
+        # format posts to return
         posts_array = []
+
+        # for each post in the page
         for post in current_page.object_list:
 
+            # check if the user made the post or if they liked it
             user_is_poster = False
             user_liked = False
 
@@ -229,6 +266,7 @@ def profile(request, username, page_num):
                 except User.DoesNotExist:
                     user_liked = False
 
+            # this is the format in which we return the post
             temp_post = {
                 'post_id': post.pk,
                 'poster': post.poster.username,
@@ -239,7 +277,11 @@ def profile(request, username, page_num):
                 'user_is_poster': user_is_poster
             }
 
+            # add the post to the posts_array
             posts_array.append(temp_post)
+
+        # determine if this is the profile of the signed in user
+        # or if the signed in user is following this user
 
         is_signed_in_user = False;
         user_is_following = False;
@@ -267,10 +309,14 @@ def profile(request, username, page_num):
             'num_pages': num_pages,
             'current_page': page_num
         }
+
         return JsonResponse(user_info)
 
+
+    # method is POST if the signed in user follows/unfollows the viewed user
     elif request.method == "POST":
 
+        # make sure there is a user signed in to do the following/unfollowing
         if request.user.is_authenticated:
 
             data = json.loads(request.body)
@@ -280,6 +326,7 @@ def profile(request, username, page_num):
             if follow_status:
                 # request.user is following user
 
+                # add the follow to the database
                 new_follow = Follow(
                     user=request.user,
                     following=user
@@ -288,8 +335,9 @@ def profile(request, username, page_num):
                 new_follow.save()
 
             else:
-
                 # request.user is unfollowing user
+
+                # remove the follow from the database
                 user.followers.filter(user=request.user, following=user).delete()
 
             response = {
@@ -302,7 +350,6 @@ def profile(request, username, page_num):
 
             return JsonResponse({"error": "You need to be signed in to follow."}, status=400)
 
-
-    # Email must be via GET or PUT
+    # Email must be via GET or POST
     else:
-        return JsonResponse({"error": "GET or PUT request required."}, status=400)
+        return JsonResponse({"error": "GET or POST request required."}, status=400)
