@@ -141,7 +141,7 @@ function loadProfileView(username, pageNum) {
   document.querySelector('#profile-view').style.display = 'block';
 
   // set profile-nav to active if user is view their own profile
-  if (document.querySelector('#profile-nav') != null && document.querySelector('#profile-nav').innerText == username) {
+  if (document.querySelector('#profile-nav') != null && document.querySelector('#profile-nav').innerText === username) {
     document.querySelector('#profile-nav').closest(".nav-item").classList.add("active");
   }
 
@@ -198,7 +198,7 @@ function loadProfileView(username, pageNum) {
     // determine if we show the follow/unfollow button
     // show if the signed in user is viewing a different account
     // don't show if user not signed in or it is their own account
-    if (userInfo.is_signed_in_user || document.querySelector('#following-nav') == null) {
+    if (userInfo.is_signed_in_user || document.querySelector('#following-nav') === null) {
       followButton.style.display = 'none';
     } else {
       followButton.style.display = 'inline-block';
@@ -595,7 +595,7 @@ function paginationFunctionality(result, postsFilter, username) {
 
 
   // determine which paginator we are dealing with
-  if (postsFilter == "profile") {
+  if (postsFilter === "profile") {
 
     paginationDiv = document.querySelector('#profile-pagination-nav');
     prevPageButton = document.querySelector('#prof-prev-page-nav');
@@ -610,7 +610,7 @@ function paginationFunctionality(result, postsFilter, username) {
   }
 
   // pagination navigation
-  if (result.num_pages == 1) {
+  if (result.num_pages === 1) {
     // only one page, so we don't need next/prev buttons
 
     // hide the pagination-nav div
@@ -623,7 +623,7 @@ function paginationFunctionality(result, postsFilter, username) {
     paginationDiv.style.display = 'block';
 
     // determine if next or prev needs to be disabled
-    if (result.current_page == 1) {
+    if (result.current_page === 1) {
 
       prevPageButton.classList.add("disabled");
       prevPageButton.childNodes[0].setAttribute('aria-disabled', true);
@@ -633,7 +633,7 @@ function paginationFunctionality(result, postsFilter, username) {
       nextPageButton.childNodes[0].removeAttribute('aria-disabled');
       nextPageButton.childNodes[0].removeAttribute('tabindex');
 
-    } else if (result.current_page == result.num_pages) {
+    } else if (result.current_page === result.num_pages) {
 
       prevPageButton.classList.remove("disabled");
       prevPageButton.childNodes[0].removeAttribute('aria-disabled');
@@ -663,7 +663,7 @@ function paginationFunctionality(result, postsFilter, username) {
       if (!prevPageButton.classList.contains("disabled")) {
 
         // load the view with the previous page
-        if (postsFilter == "profile") {
+        if (postsFilter === "profile") {
 
           loadProfileView(username, result.current_page - 1);
 
@@ -685,7 +685,7 @@ function paginationFunctionality(result, postsFilter, username) {
       if (!nextPageButton.classList.contains("disabled")) {
 
         // load the view with the previous page
-        if (postsFilter == "profile") {
+        if (postsFilter === "profile") {
 
           loadProfileView(username, result.current_page + 1);
 
